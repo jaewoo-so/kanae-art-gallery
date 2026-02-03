@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Portfolio</title>
+    <title>Yoshimura Kanae</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -46,20 +46,14 @@
         .ratio-square { aspect-ratio: 1/1; }
         .artwork-image { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 메뉴바 */
         .sidebar-menu {
             position: fixed; z-index: 40;
             display: flex; flex-direction: row; gap: 20px;
             bottom: 40px; top: auto; left: 50%; transform: translateX(-50%);
             transition: opacity 0.3s ease;
         }
-
-        /* 메뉴 숨김 클래스 */
-        .menu-hidden { 
-            opacity: 0 !important; 
-            pointer-events: none !important;
-            transform: translateX(-50%) translateY(30px) !important; 
-        }
+        /* 메인 페이지일 때 메뉴 숨기고 싶으면 사용 (현재는 안씀) */
+        .sidebar-hidden { opacity: 0; pointer-events: none; }
 
         .category-btn {
             width: 45px; height: 45px;
@@ -85,23 +79,19 @@
         }
         .text-floating:hover { transform: translateY(-3px); opacity: 1; text-shadow: 0 10px 20px rgba(0,0,0,0.6); }
 
-        @keyframes blurFadeIn {
-            0% { opacity: 0; filter: blur(10px); transform: translateY(5px); }
-            100% { opacity: 1; filter: blur(0); transform: translateY(0); }
-        }
-        
-        .intro-line {
-            opacity: 0; 
-            animation: blurFadeIn 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
-            display: block; margin-bottom: 0.5rem; 
-        }
-
         .sns-icon-box { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
         .sns-icon-box i { display: block; line-height: 1; }
         .fa-instagram { font-size: 40px; }
         .fa-line { font-size: 34px; }
 
-        /* 화살표 */
+        .bio-scroll-container {
+            width: 100%; height: 100%; overflow-y: auto;
+            padding: 100px 20px 100px 20px; 
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .bio-scroll-container::-webkit-scrollbar { display: none; }
+        .bio-grid-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+
         .nav-arrow {
             position: fixed; z-index: 30;
             color: #fff; font-size: 1.5rem; 
@@ -117,13 +107,15 @@
         .hidden-arrow { display: none !important; }
 
         body.theme-light .nav-arrow { color: #000; }
+
+        
     </style>
 </head>
 <body class="theme-dark">
     <nav class="fixed left-0 w-full z-50 flex justify-between items-center p-4 md:p-6 transition-colors duration-300" style="top: 40px;">
         <div class="flex items-center gap-3 md:gap-6 pl-2 md:pl-16">
             <div class="text-floating text-lg md:text-xl font-bold tracking-widest uppercase whitespace-nowrap">
-                kanae&chinon <br>ペット刺繍
+                Yoshimura kanae
             </div>
         </div>
         <div class="flex flex-row gap-8 items-center mr-2"> 
@@ -179,6 +171,7 @@
         const allCategories = [...MY_DATA.galleries];
         if (MY_DATA.bio) allCategories.push({ type: 'bio', ...MY_DATA.bio });
 
+        // 공통 인트로 슬라이드 생성 함수
         function createIntroSlide() {
             if (!MY_DATA.intro) return '';
             const introPath = getImagePath(MY_DATA.intro.targetFolderId, MY_DATA.intro.bgImage);
@@ -189,7 +182,7 @@
                 bgHTML = `
                     <video autoplay loop muted playsinline 
                         class="absolute top-0 left-0 w-[130%] h-[130%] object-cover -translate-x-[15%] -translate-y-[15%] -z-10"
-                        style="filter: brightness(0.7);" 
+                        style="filter: brightness(0.5);" 
                         data-swiper-parallax="50%">
                         <source src="${introPath}" type="video/mp4">
                     </video>
@@ -197,33 +190,19 @@
             } else {
                 bgHTML = `
                     <div class="slide-bg" 
-                        style="background-image: url('${introPath}'); 
-                               background-color: #ffffff;
-                               background-size: contain;
-                               background-repeat: no-repeat;
-                               background-position: center;
-                               width: 100%; height: 100%;
-                               top: 0; left: 0; transform: none;
-                               filter: none;"
-                        data-swiper-parallax="0">
+                        style="background-image: url('${introPath}'); filter: blur(15px) brightness(0.7);" 
+                        data-swiper-parallax="50%">
                     </div>
                 `;
             }
-
-            const messageLines = MY_DATA.intro.message.split('\n');
-            const animatedTextHTML = messageLines.map((line, index) => {
-                if(line.trim() === '') return `<div class="intro-line" style="height: 1rem; animation-delay: ${index * 0.15}s;"></div>`;
-                return `<div class="intro-line text-lg md:text-xl leading-relaxed text-floating" style="animation-delay: ${index * 0.15}s;">${line}</div>`;
-            }).join('');
 
             return `
                 <div class="swiper-slide intro-slide" data-theme="dark">
                     ${bgHTML}
                     <div class="artwork-container ratio-portrait" style="border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
                         <div class="p-8 flex flex-col items-center justify-center text-center h-full w-full">
-                            <div class="w-full">
-                                ${animatedTextHTML}
-                            </div>
+                            
+                            <p class="text-lg md:text-xl leading-relaxed text-floating whitespace-pre-line">${MY_DATA.intro.message}</p>
                             <div class="mt-12 text-floating opacity-70 animate-bounce">
                                 <i class="fa-solid fa-chevron-down text-2xl"></i>
                             </div>
@@ -249,33 +228,37 @@
             const hSlide = document.createElement('div');
             hSlide.className = 'swiper-slide';
 
-            // 1층: 인트로 슬라이드 (공통)
+            // [구조 통일] 모든 카테고리는 Vertical Swiper를 가짐. Slide 0은 무조건 인트로.
             let vSlidesHTML = createIntroSlide();
 
             if (cat.type === 'bio') {
-                // ============================================
-                // [수정됨] Bio 페이지: 표지 페이지 제거하고 바로 히스토리 시작
-                // ============================================
-                
-                // 2층~N층: 히스토리 아이템 (바로 시작)
-                cat.history.forEach(item => {
-                    const itemImg = getImagePath(cat.id, item.img);
-                    vSlidesHTML += `
-                        <div class="swiper-slide" data-theme="dark">
-                            <div class="slide-bg" style="background-image: url('${itemImg}'); filter: blur(20px) brightness(0.5);" data-swiper-parallax="50%"></div>
-                            <div class="artwork-container ratio-portrait">
-                                <img src="${itemImg}" class="artwork-image">
-                                <div class="absolute bottom-0 left-0 w-full p-6 pb-28 bg-gradient-to-t from-black/90 via-black/50 to-transparent text-center">
-                                    <h3 class="text-2xl font-bold text-floating mb-1">${item.title}</h3>
-                                    <p class="text-gray-300 text-sm text-floating">${item.date}</p>
+                // Bio 페이지도 2층(Slide 1)에 배치
+                const bgPath = getImagePath(cat.id, cat.backgroundImg);
+                vSlidesHTML += `
+                    <div class="swiper-slide" data-theme="dark">
+                        <div class="slide-bg" style="background-image: url('${bgPath}'); filter: blur(20px) brightness(0.5);" data-swiper-parallax="50%"></div>
+                        <div class="bio-scroll-container text-white">
+                            <div class="max-w-2xl mx-auto">
+                                <h1 class="text-4xl font-bold mb-2 text-center" data-swiper-parallax="-300">${cat.title}</h1>
+                                <p class="text-center text-gray-400 mb-12 text-sm" data-swiper-parallax="-200">${cat.subtitle}</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10 text-center md:text-left" data-swiper-parallax="-100">
+                                    ${cat.history.map(item => `
+                                        <div class="bio-grid-item flex flex-col items-center md:items-start">
+                                            <img src="${getImagePath(cat.id, item.img)}" alt="${item.title}">
+                                            <div class="text-xs mt-2">
+                                                <div class="font-bold text-lg">${item.title}</div>
+                                                <div class="text-gray-400">${item.date}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
+                                <div class="text-center text-xs text-gray-500 pb-10">&copy; 2026 Portfolio.</div>
                             </div>
                         </div>
-                    `;
-                });
-
+                    </div>
+                `;
             } else {
-                // 일반 갤러리 슬라이드
+                // 일반 갤러리 슬라이드 (Slide 1부터 시작)
                 vSlidesHTML += cat.slides.map(slide => {
                     const imgPath = getImagePath(cat.id, slide.img);
                     return `
@@ -299,11 +282,14 @@
             mainSwiperWrapper.appendChild(hSlide);
         });
 
+        // 2초 타이머
         let arrowTimer;
         function flashArrows() {
             if (isCurrentSlideIntro()) {
+                // 메인 페이지면 화살표 4개 다 숨김 (중앙 바운스 화살표가 있기 때문)
                 allArrows.forEach(arrow => arrow.classList.remove('visible'));
             } else {
+                // 갤러리 페이지면 화살표 보여주고 2초뒤 숨김
                 allArrows.forEach(arrow => arrow.classList.add('visible'));
                 clearTimeout(arrowTimer);
                 arrowTimer = setTimeout(() => {
@@ -312,32 +298,25 @@
             }
         }
 
+        // 현재 메인(Intro)인지 확인하는 함수
         function isCurrentSlideIntro() {
             const activeHSlide = swiperH.slides[swiperH.activeIndex];
             const vSwiper = activeHSlide.querySelector('.swiper-container-v')?.swiper;
+            // Vertical Swiper의 Index가 0이면 메인 페이지임
             return (vSwiper && vSwiper.activeIndex === 0);
         }
 
-        function checkMenuVisibility() {
-            const activeHSlide = swiperH.slides[swiperH.activeIndex];
-            const vSwiper = activeHSlide.querySelector('.swiper-container-v')?.swiper;
-            
-            if (vSwiper) {
-                if (vSwiper.activeIndex === 0) {
-                    sidebarContainer.classList.add('menu-hidden');
-                } else {
-                    sidebarContainer.classList.remove('menu-hidden');
-                }
-            }
-        }
-
+        // Horizontal Swiper
         var swiperH = new Swiper(".swiper-container-h", {
             spaceBetween: 50, direction: 'horizontal', effect: 'slide', speed: 600,
-            allowTouchMove: false,
+            allowTouchMove: false, // 초기값: 잠금 (메인이니까)
             on: { 
                 slideChangeTransitionStart: function () {
+                    // [핵심] 옆으로 넘어갈 때, 다음 카테고리도 '갤러리(1층)'로 바로 이동시키기
+                    // 현재 내가 갤러리(1층)에 있었다면, 다음 방도 1층으로 안내
                     const activeVSwiper = this.slides[this.activeIndex].querySelector('.swiper-container-v')?.swiper;
                     if(activeVSwiper) {
+                        // 강제로 1번 슬라이드(첫번째 이미지)로 점프. 0(Intro) 건너뜀.
                         activeVSwiper.slideTo(1, 0); 
                     }
                 },
@@ -346,17 +325,12 @@
                     updateThemeColor(); 
                     updateArrowState(); 
                     flashArrows(); 
-                    checkMenuVisibility(); 
                 },
-                init: function() { 
-                    setTimeout(() => { 
-                        updateArrowState(); 
-                        checkMenuVisibility(); 
-                    }, 100); 
-                }
+                init: function() { setTimeout(() => { updateArrowState(); }, 100); }
             }
         });
 
+        // Vertical Swiper
         var swiperV = new Swiper(".swiper-container-v", {
             direction: "vertical", spaceBetween: 0, mousewheel: true, parallax: true,
             speed: 1000, nested: true, touchRatio: 1.2, resistanceRatio: 0.65,
@@ -365,20 +339,22 @@
                     updateThemeColor(); 
                     updateArrowState();
                     flashArrows(); 
-                    checkHorizontalLock();
-                    checkMenuVisibility();
+                    checkHorizontalLock(); // 위아래 움직일 때마다 잠금 체크
                 } 
             }
         });
 
+        // [핵심] 가로 이동 잠금/해제 로직
         function checkHorizontalLock() {
             const activeHSlide = swiperH.slides[swiperH.activeIndex];
             const vSwiper = activeHSlide.querySelector('.swiper-container-v')?.swiper;
             
             if (vSwiper) {
                 if (vSwiper.activeIndex === 0) {
+                    // 메인(0번) -> 가로 잠금
                     swiperH.allowTouchMove = false;
                 } else {
+                    // 갤러리(1번 이상) -> 가로 풀림
                     swiperH.allowTouchMove = true;
                 }
             }
@@ -402,10 +378,12 @@
 
         function updateArrowState() {
             if (isCurrentSlideIntro()) {
+                // 메인이면 4개 화살표 모두 숨김
                 allArrows.forEach(arrow => arrow.classList.add('hidden-arrow'));
                 return;
             }
 
+            // 갤러리 페이지 로직
             if (swiperH.isBeginning) navArrows.left.classList.add('hidden-arrow');
             else navArrows.left.classList.remove('hidden-arrow');
 
@@ -418,6 +396,7 @@
             
             if (vSwiperContainer) {
                 const vSwiper = vSwiperContainer.swiper;
+                // 위쪽 화살표: 메인으로 가는 길이므로 항상 보여야 함 (Intro가 0번이므로 1번 이상이면 보임)
                 if (vSwiper.activeIndex > 0) navArrows.up.classList.remove('hidden-arrow');
                 else navArrows.up.classList.add('hidden-arrow');
 
@@ -452,10 +431,10 @@
             document.body.className = theme === 'light' ? 'theme-light' : 'theme-dark';
         }
         
+        // 초기화
         setTimeout(() => {
-            checkHorizontalLock(); 
+            checkHorizontalLock(); // 첫 화면 잠금 확인
             updateArrowState();
-            checkMenuVisibility(); 
         }, 50);
     </script>
 </body>

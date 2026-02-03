@@ -46,18 +46,24 @@
         .ratio-square { aspect-ratio: 1/1; }
         .artwork-image { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 메뉴바 */
+        /* [수정됨] 하단 메뉴바 스타일 및 숨김 효과 */
         .sidebar-menu {
             position: fixed; z-index: 40;
             display: flex; flex-direction: row; gap: 20px;
-            bottom: 40px; top: auto; left: 50%; transform: translateX(-50%);
-            transition: opacity 0.3s ease;
+            bottom: 40px; top: auto; left: 50%; 
+            transform: translateX(-50%); /* 기본 중앙 정렬 */
+            
+            /* 부드러운 전환 효과 */
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 1;
+            pointer-events: auto;
         }
 
-        /* 메뉴 숨김 클래스 */
+        /* 메뉴가 숨겨질 때 적용할 클래스 */
         .menu-hidden { 
             opacity: 0 !important; 
             pointer-events: none !important;
+            /* 아래로 살짝 내려가면서 사라짐 */
             transform: translateX(-50%) translateY(30px) !important; 
         }
 
@@ -101,7 +107,14 @@
         .fa-instagram { font-size: 40px; }
         .fa-line { font-size: 34px; }
 
-        /* 화살표 */
+        .bio-scroll-container {
+            width: 100%; height: 100%; overflow-y: auto;
+            padding: 100px 20px 100px 20px; 
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .bio-scroll-container::-webkit-scrollbar { display: none; }
+        .bio-grid-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+
         .nav-arrow {
             position: fixed; z-index: 30;
             color: #fff; font-size: 1.5rem; 
@@ -123,7 +136,7 @@
     <nav class="fixed left-0 w-full z-50 flex justify-between items-center p-4 md:p-6 transition-colors duration-300" style="top: 40px;">
         <div class="flex items-center gap-3 md:gap-6 pl-2 md:pl-16">
             <div class="text-floating text-lg md:text-xl font-bold tracking-widest uppercase whitespace-nowrap">
-                kanae&chinon <br>ペット刺繍
+                kanae&chinon ペット刺繍
             </div>
         </div>
         <div class="flex flex-row gap-8 items-center mr-2"> 
@@ -249,33 +262,34 @@
             const hSlide = document.createElement('div');
             hSlide.className = 'swiper-slide';
 
-            // 1층: 인트로 슬라이드 (공통)
             let vSlidesHTML = createIntroSlide();
 
             if (cat.type === 'bio') {
-                // ============================================
-                // [수정됨] Bio 페이지: 표지 페이지 제거하고 바로 히스토리 시작
-                // ============================================
-                
-                // 2층~N층: 히스토리 아이템 (바로 시작)
-                cat.history.forEach(item => {
-                    const itemImg = getImagePath(cat.id, item.img);
-                    vSlidesHTML += `
-                        <div class="swiper-slide" data-theme="dark">
-                            <div class="slide-bg" style="background-image: url('${itemImg}'); filter: blur(20px) brightness(0.5);" data-swiper-parallax="50%"></div>
-                            <div class="artwork-container ratio-portrait">
-                                <img src="${itemImg}" class="artwork-image">
-                                <div class="absolute bottom-0 left-0 w-full p-6 pb-28 bg-gradient-to-t from-black/90 via-black/50 to-transparent text-center">
-                                    <h3 class="text-2xl font-bold text-floating mb-1">${item.title}</h3>
-                                    <p class="text-gray-300 text-sm text-floating">${item.date}</p>
+                const bgPath = getImagePath(cat.id, cat.backgroundImg);
+                vSlidesHTML += `
+                    <div class="swiper-slide" data-theme="dark">
+                        <div class="slide-bg" style="background-image: url('${bgPath}'); filter: blur(20px) brightness(0.5);" data-swiper-parallax="50%"></div>
+                        <div class="bio-scroll-container text-white">
+                            <div class="max-w-2xl mx-auto">
+                                <h1 class="text-4xl font-bold mb-2 text-center" data-swiper-parallax="-300">${cat.title}</h1>
+                                <p class="text-center text-gray-400 mb-12 text-sm" data-swiper-parallax="-200">${cat.subtitle}</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10 text-center md:text-left" data-swiper-parallax="-100">
+                                    ${cat.history.map(item => `
+                                        <div class="bio-grid-item flex flex-col items-center md:items-start">
+                                            <img src="${getImagePath(cat.id, item.img)}" alt="${item.title}">
+                                            <div class="text-xs mt-2">
+                                                <div class="font-bold text-lg">${item.title}</div>
+                                                <div class="text-gray-400">${item.date}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
+                                <div class="text-center text-xs text-gray-500 pb-10">&copy; 2026 Portfolio.</div>
                             </div>
                         </div>
-                    `;
-                });
-
+                    </div>
+                `;
             } else {
-                // 일반 갤러리 슬라이드
                 vSlidesHTML += cat.slides.map(slide => {
                     const imgPath = getImagePath(cat.id, slide.img);
                     return `
@@ -318,11 +332,13 @@
             return (vSwiper && vSwiper.activeIndex === 0);
         }
 
+        // [신규] 메뉴바 표시/숨김 체크 함수
         function checkMenuVisibility() {
             const activeHSlide = swiperH.slides[swiperH.activeIndex];
             const vSwiper = activeHSlide.querySelector('.swiper-container-v')?.swiper;
             
             if (vSwiper) {
+                // 현재 메인(0번)이면 숨김, 아니면 보임
                 if (vSwiper.activeIndex === 0) {
                     sidebarContainer.classList.add('menu-hidden');
                 } else {
@@ -346,12 +362,12 @@
                     updateThemeColor(); 
                     updateArrowState(); 
                     flashArrows(); 
-                    checkMenuVisibility(); 
+                    checkMenuVisibility(); // 가로 이동 시에도 체크
                 },
                 init: function() { 
                     setTimeout(() => { 
                         updateArrowState(); 
-                        checkMenuVisibility(); 
+                        checkMenuVisibility(); // 초기 로드 시 체크
                     }, 100); 
                 }
             }
@@ -366,7 +382,7 @@
                     updateArrowState();
                     flashArrows(); 
                     checkHorizontalLock();
-                    checkMenuVisibility();
+                    checkMenuVisibility(); // 세로 이동 시 체크 (핵심)
                 } 
             }
         });
@@ -455,7 +471,7 @@
         setTimeout(() => {
             checkHorizontalLock(); 
             updateArrowState();
-            checkMenuVisibility(); 
+            checkMenuVisibility(); // 초기 체크
         }, 50);
     </script>
 </body>
